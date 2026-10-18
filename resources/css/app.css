@@ -1,23 +1,95 @@
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@200;300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-    @apply bg-paper text-ink antialiased font-light;
+@layer base {
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-paper font-sans text-[13px] font-light text-ink antialiased;
+    }
+
+    ::selection {
+        @apply bg-ink text-paper;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    input:not([type='radio']):not([type='checkbox']):focus,
+    select:focus,
+    textarea:focus {
+        @apply border-ink ring-0;
+    }
 }
 
-html {
-    scroll-behavior: smooth;
+@layer components {
+    /* Small uppercase label: the base typographic unit of the shop. */
+    .label {
+        @apply text-[11px] font-normal uppercase tracking-widest2;
+    }
+
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 whitespace-nowrap border border-ink bg-ink px-8 py-3.5 text-[11px] font-normal uppercase tracking-widest2 text-paper transition-colors duration-300 hover:bg-paper hover:text-ink disabled:pointer-events-none disabled:border-line disabled:bg-sand disabled:text-stone;
+    }
+
+    .btn-dark {
+        @apply btn-primary;
+    }
+
+    .btn-outline {
+        @apply inline-flex items-center justify-center gap-2 whitespace-nowrap border border-ink bg-transparent px-8 py-3.5 text-[11px] font-normal uppercase tracking-widest2 text-ink transition-colors duration-300 hover:bg-ink hover:text-paper;
+    }
+
+    .eyebrow {
+        @apply text-[11px] font-normal uppercase tracking-widest2 text-stone;
+    }
+
+    .section-title {
+        @apply text-[13px] font-normal uppercase tracking-widest2 text-ink;
+    }
+
+    /* Underline that draws in on hover. */
+    .link-underline {
+        background-image: linear-gradient(currentColor, currentColor);
+        background-position: 0 100%;
+        background-repeat: no-repeat;
+        background-size: 0% 1px;
+        transition: background-size 400ms cubic-bezier(0.22, 1, 0.36, 1);
+        @apply pb-px;
+    }
+
+    .link-underline:hover,
+    .link-underline.is-active {
+        background-size: 100% 1px;
+    }
+
+    .chip {
+        @apply inline-flex cursor-pointer items-center border border-line px-3 py-1.5 text-[11px] uppercase tracking-wide text-ink transition-colors duration-200 hover:border-ink;
+    }
+
+    .chip.is-active {
+        @apply border-ink bg-ink text-paper;
+    }
+
+    .field {
+        @apply w-full rounded-none border-0 border-b border-ink bg-transparent px-0 py-2.5 text-[13px] text-ink placeholder-stone/70 focus:border-ink focus:ring-0;
+    }
 }
 
 .color-swatch {
-    @apply h-6 w-6 rounded-full border border-black/10 ring-offset-2 transition;
+    @apply h-4 w-4 border border-black/15 ring-offset-2 ring-offset-paper transition-shadow duration-200;
 }
 
-/* Horizontal image carousels (quick view gallery, etc.): scrollable, but
-   without an ugly scrollbar cluttering the sober layout. */
+.color-swatch[aria-pressed="true"] {
+    @apply ring-1 ring-ink;
+}
+
 .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -27,130 +99,73 @@ html {
     display: none;
 }
 
-.color-swatch[aria-pressed="true"] {
-    @apply ring-1 ring-ink;
-}
-
-/* Sober scroll-reveal: content is visible by default, this only adds a
-   gentle fade for browsers with JS enabled (Alpine sets .is-visible). */
-[data-reveal] {
+/* Product card: plain cross-fade to the second photo on hover. */
+.product-tile .tile-img-alt {
     opacity: 0;
-    transition: opacity 900ms ease;
+    transition: opacity 500ms ease;
 }
 
-[data-reveal].is-visible {
-    opacity: 1;
-}
-
-/* Product-card press feedback: a tactile little scale on click, before the
-   page (view) transition takes over. */
-.product-tile img {
-    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.product-tile:active img {
-    transform: scale(0.97);
-}
-
-/* Mobile drawer smooth transitions */
-.drawer-transition-enter {
-    transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.drawer-transition-leave {
-    transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.mobile-nav-details[open] .mobile-submenu {
-    animation: menu-sub-reveal 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes menu-sub-reveal {
-    from {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-    to {
+@media (hover: hover) {
+    .product-tile:hover .tile-img-alt {
         opacity: 1;
-        transform: translateY(0);
     }
 }
 
-/* FAQ: soft open to avoid abrupt jumps when the answer appears. */
+/* Side drawers (menu, filters) */
+.drawer-enter {
+    transition: transform 550ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.drawer-leave {
+    transition: transform 300ms cubic-bezier(0.4, 0, 1, 1);
+}
+
 @media (prefers-reduced-motion: no-preference) {
-    .faq-item[open] .faq-answer {
-        animation: faq-reveal 220ms ease-out both;
+    /* Scroll reveal: a quiet fade. Content stays visible without JS. */
+    .js [data-reveal] {
+        opacity: 0;
+        transition: opacity 900ms ease;
     }
 
-    @keyframes faq-reveal {
+    .js [data-reveal].is-visible {
+        opacity: 1;
+    }
+
+    .faq-item[open] .faq-answer,
+    .menu-panel {
+        animation: fade-in 400ms ease both;
+    }
+
+    @keyframes fade-in {
         from {
             opacity: 0;
-            transform: translateY(-4px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
         }
     }
-}
 
-/* Native cross-document View Transitions: when navigating from a product
-   grid to a product page, the browser lifts the clicked image into a
-   top-layer overlay (automatically above every other element on the page,
-   no z-index needed) and morphs its size/position into the destination
-   photo on the product page. Enabled via the <meta name="view-transition">
-   tag in the layout. Slowed down and given a soft deceleration curve so it
-   reads as a deliberate "reveal" rather than a snap. */
-@media (prefers-reduced-motion: no-preference) {
+    /* Native cross-document View Transitions (see <meta name="view-transition">):
+       a calm cross-fade between pages while the product photo morphs from the
+       grid into the product page. */
     ::view-transition-group(*) {
-        animation-duration: 750ms;
-        animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+        animation-duration: 600ms;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* The old page recedes slightly as the new one settles in, so the
-       image feels like it's coming forward to the center of attention. */
     ::view-transition-old(root) {
-        animation: 400ms cubic-bezier(0.4, 0, 1, 1) both atlas-page-out;
+        animation: 250ms ease-out both fade-out;
     }
 
     ::view-transition-new(root) {
-        animation: 550ms cubic-bezier(0, 0, 0.2, 1) 120ms both atlas-page-in;
+        animation: 400ms ease 100ms both fade-in;
     }
 
-    @keyframes atlas-page-out {
+    @keyframes fade-out {
         to {
             opacity: 0;
-            transform: scale(0.98);
         }
     }
 
-    @keyframes atlas-page-in {
-        from {
-            opacity: 0;
-            transform: scale(0.98);
-        }
-    }
-}
-
-/* Product detail column: fades and lifts in once the hero image has mostly
-   landed, so the page reads as "image arrives, then details reveal"
-   rather than everything popping in at once. Runs in every browser, with
-   or without View Transitions support. */
-@media (prefers-reduced-motion: no-preference) {
+    /* Product page: the info columns fade in once the photo has landed. */
     .detail-enter {
-        animation: detail-enter 700ms cubic-bezier(0.19, 1, 0.22, 1) both;
-        animation-delay: 380ms;
-    }
-
-    @keyframes detail-enter {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        animation: fade-in 700ms ease 250ms both;
     }
 }

@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <h1 class="text-center text-sm uppercase tracking-widest2">Vérifiez votre email</h1>
+    <h1 class="text-center section-title">Vérifiez votre email</h1>
 
     <p class="mt-6 text-center text-xs leading-relaxed text-stone">
         Merci de votre inscription ! Avant de continuer, veuillez confirmer votre adresse email
@@ -8,7 +8,7 @@
     </p>
 
     @if (session('status') == 'verification-link-sent')
-        <div class="mt-6 border border-line bg-sand px-4 py-3 text-center text-xs text-ink">
+        <div class="mt-6 rounded-none bg-sand px-4 py-3 text-center text-xs text-ink">
             Un nouveau lien de vérification a été envoyé à l'adresse email indiquée lors de l'inscription.
         </div>
     @endif

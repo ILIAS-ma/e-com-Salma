@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <h1 class="text-center text-sm uppercase tracking-widest2">Mot de passe oublié</h1>
+    <h1 class="text-center section-title">Mot de passe oublié</h1>
 
     <p class="mt-6 text-center text-xs leading-relaxed text-stone">
         Indiquez votre adresse email et nous vous enverrons un lien pour choisir un nouveau mot de passe.

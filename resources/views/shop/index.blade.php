@@ -1,9 +1,17 @@
 <x-shop-layout :title="$category?->name">
+    @php
+        // Sub-navigation: a category's children, or its siblings, or the root categories.
+        $subnav = $category
+            ? ($category->children->isNotEmpty() ? $category->children : ($category->parent?->children ?? collect()))
+            : $categories;
+        $subnavParent = $category?->children->isNotEmpty() ? $category : $category?->parent;
+        $activeFilters = request()->only(['gender', 'size', 'color', 'min_price', 'max_price', 'sort']);
+    @endphp
+
     <div
-        class="mx-auto max-w-[1600px] px-4 py-8 sm:px-6"
         x-data="{
-            filtersOpen: true,
-            columns: 3,
+            filtersOpen: false,
+            columns: 4,
             transitioning: false,
             setColumns(n) {
                 if (this.columns === n) return;
@@ -11,62 +19,128 @@
                 setTimeout(() => {
                     this.columns = n;
                     requestAnimationFrame(() => { this.transitioning = false; });
-                }, 180);
+                }, 200);
             },
         }"
+        @keydown.escape.window="filtersOpen = false"
+        class="px-4 pt-6 sm:px-6 lg:px-10"
     >
-        <h1 class="text-sm uppercase tracking-widest2">
-            {{ $category?->name ?? (request()->boolean('sale') ? 'Promotions' : 'Toute la boutique') }}
-        </h1>
+        <!-- Sub-navigation -->
+        @if ($subnav->isNotEmpty())
+            <nav class="no-scrollbar -mx-4 flex gap-6 overflow-x-auto px-4 text-[11px] uppercase tracking-widest2 sm:mx-0 sm:px-0">
+                @if ($subnavParent)
+                    <a href="{{ route('shop.category', $subnavParent) }}" @class(['link-underline shrink-0', 'is-active' => $category?->is($subnavParent), 'text-stone' => ! $category?->is($subnavParent)])>Voir tout</a>
+                @endif
+                @foreach ($subnav as $item)
+                    <a href="{{ route('shop.category', $item) }}" @class(['link-underline shrink-0', 'is-active' => $category?->is($item), 'text-stone' => ! $category?->is($item)])>{{ $item->name }}</a>
+                @endforeach
+            </nav>
+        @endif
 
-        <!-- Toolbar: filter toggle, count, sort, column density -->
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
-            <div class="flex items-center gap-4">
-                <button
-                    type="button"
-                    @click="filtersOpen = !filtersOpen"
-                    class="flex items-center gap-2 text-[11px] uppercase tracking-widest2"
-                >
-                    <span x-text="filtersOpen ? 'Masquer les filtres' : 'Afficher les filtres'"></span>
-                    <span x-text="filtersOpen ? '−' : '+'"></span>
-                </button>
-                <p class="text-xs text-stone">{{ $products->total() }} article(s)</p>
-            </div>
+        <!-- Toolbar -->
+        <div class="mt-8 flex items-center justify-between">
+            <h1 class="section-title">
+                {{ $category?->name ?? (request()->boolean('sale') ? 'Promotions' : 'Toute la boutique') }}
+                <span class="ml-2 text-stone">{{ $products->total() }}</span>
+            </h1>
 
-            <div class="flex items-center gap-5">
-                <form method="GET">
-                    @foreach (request()->except('sort') as $key => $value)
-                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+            <div class="flex items-center gap-6">
+                <!-- Grid density (desktop) -->
+                <div class="hidden items-center gap-3 lg:flex">
+                    @foreach ([2 => 'M3 3h8v18H3zM13 3h8v18h-8z', 4 => 'M2 3h4v18H2zM7.33 3h4v18h-4zM12.67 3h4v18h-4zM18 3h4v18h-4z', 6 => 'M1 3h2.5v18H1zM4.7 3h2.5v18H4.7zM8.4 3h2.5v18H8.4zM12.1 3h2.5v18h-2.5zM15.8 3h2.5v18h-2.5zM19.5 3H22v18h-2.5z'] as $count => $icon)
+                        <button
+                            type="button"
+                            @click="setColumns({{ $count }})"
+                            :class="columns === {{ $count }} ? 'opacity-100' : 'opacity-30 hover:opacity-60'"
+                            class="transition-opacity duration-200"
+                            aria-label="{{ $count }} par ligne"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="{{ $icon }}" /></svg>
+                        </button>
                     @endforeach
-                    <select name="sort" onchange="this.form.submit()" class="rounded-none border-line text-xs">
-                        <option value="newest" @selected(request('sort', 'newest') === 'newest')>Nouveautés</option>
-                        <option value="popularity" @selected(request('sort') === 'popularity')>Popularité</option>
-                        <option value="price_asc" @selected(request('sort') === 'price_asc')>Prix croissant</option>
-                        <option value="price_desc" @selected(request('sort') === 'price_desc')>Prix décroissant</option>
-                    </select>
-                </form>
-
-                <!-- Column density, like Zara's grid switcher (desktop only) -->
-                <div class="hidden items-center gap-2 lg:flex">
-                    <button type="button" @click="setColumns(2)" :class="columns === 2 ? 'text-ink' : 'text-stone'" class="text-[11px] uppercase tracking-widest2 transition-colors duration-200" title="2 par ligne">2</button>
-                    <span class="text-line">/</span>
-                    <button type="button" @click="setColumns(3)" :class="columns === 3 ? 'text-ink' : 'text-stone'" class="text-[11px] uppercase tracking-widest2 transition-colors duration-200" title="3 par ligne">3</button>
-                    <span class="text-line">/</span>
-                    <button type="button" @click="setColumns(4)" :class="columns === 4 ? 'text-ink' : 'text-stone'" class="text-[11px] uppercase tracking-widest2 transition-colors duration-200" title="4 par ligne">4</button>
                 </div>
+
+                <button type="button" @click="filtersOpen = true" class="label link-underline">
+                    Filtres @if (count(array_filter($activeFilters)))({{ count(array_filter($activeFilters)) }})@endif
+                </button>
             </div>
         </div>
 
-        <div class="mt-8 grid grid-cols-1 gap-8" :class="filtersOpen ? 'lg:grid-cols-[200px_1fr]' : 'lg:grid-cols-1'">
-            <!-- Filters -->
-            <aside x-show="filtersOpen" x-transition.opacity>
-                <form method="GET" class="space-y-7 text-xs">
+        <!-- Grid -->
+        @if ($products->isEmpty())
+            <div class="py-32 text-center">
+                <p class="label">Aucun article ne correspond à ces critères</p>
+                <a href="{{ route('shop.index') }}" class="btn-outline mt-8">Voir toute la boutique</a>
+            </div>
+        @else
+            <div
+                class="mt-6 grid grid-cols-2 gap-x-2 gap-y-10 transition-opacity duration-200"
+                :class="{
+                    'lg:grid-cols-2': columns === 2,
+                    'lg:grid-cols-4': columns === 4,
+                    'lg:grid-cols-6': columns === 6,
+                    'opacity-0': transitioning,
+                }"
+            >
+                @foreach ($products as $product)
+                    <x-product-card :product="$product" />
+                @endforeach
+            </div>
+
+            <div class="mt-16">{{ $products->links() }}</div>
+        @endif
+
+        <!-- Filters drawer -->
+        <div
+            class="fixed inset-0 z-50 bg-black/20"
+            x-show="filtersOpen"
+            x-cloak
+            x-transition:enter="transition-opacity duration-500"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity duration-300"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            @click="filtersOpen = false"
+        ></div>
+
+        <aside
+            x-show="filtersOpen"
+            x-cloak
+            class="fixed right-0 top-0 z-50 flex h-dvh w-full flex-col bg-paper sm:w-[420px]"
+            x-transition:enter="drawer-enter"
+            x-transition:enter-start="translate-x-full"
+            x-transition:enter-end="translate-x-0"
+            x-transition:leave="drawer-leave"
+            x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="translate-x-full"
+            aria-label="Filtres"
+        >
+            <div class="flex h-16 shrink-0 items-center justify-between px-6 lg:h-20">
+                <p class="label">Filtres</p>
+                <button type="button" @click="filtersOpen = false" class="-mr-1 p-1" aria-label="Fermer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                        <path stroke-linecap="square" d="M5 5l14 14M19 5L5 19" />
+                    </svg>
+                </button>
+            </div>
+
+            <form
+                method="GET"
+                class="flex flex-1 flex-col overflow-hidden"
+                @change="$el.querySelectorAll('.chip').forEach(chip => chip.classList.toggle('is-active', chip.querySelector('input').checked))"
+            >
+                @if (request()->boolean('sale'))
+                    <input type="hidden" name="sale" value="1">
+                @endif
+
+                <div class="flex-1 space-y-10 overflow-y-auto px-6 pb-8">
                     <div>
-                        <p class="mb-3 text-[10px] uppercase tracking-widest2 text-stone">Genre</p>
-                        <div class="space-y-2 text-ink">
-                            @foreach (['femme' => 'Femme', 'homme' => 'Homme', 'enfant' => 'Enfant'] as $value => $label)
-                                <label class="flex items-center gap-2">
-                                    <input type="radio" name="gender" value="{{ $value }}" @checked(request('gender') === $value) onchange="this.form.submit()">
+                        <p class="label text-stone">Trier par</p>
+                        <div class="mt-4 space-y-3 text-[12px] uppercase tracking-wide">
+                            @foreach (['newest' => 'Nouveautés', 'popularity' => 'Popularité', 'price_asc' => 'Prix croissant', 'price_desc' => 'Prix décroissant'] as $value => $label)
+                                <label class="flex cursor-pointer items-center gap-3">
+                                    <input type="radio" name="sort" value="{{ $value }}" class="h-3 w-3 rounded-none border-ink text-ink focus:ring-0" @checked(request('sort', 'newest') === $value)>
                                     {{ $label }}
                                 </label>
                             @endforeach
@@ -74,11 +148,23 @@
                     </div>
 
                     <div>
-                        <p class="mb-3 text-[10px] uppercase tracking-widest2 text-stone">Taille</p>
-                        <div class="flex flex-wrap gap-1.5">
+                        <p class="label text-stone">Genre</p>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            @foreach (['femme' => 'Femme', 'homme' => 'Homme', 'enfant' => 'Enfant'] as $value => $label)
+                                <label @class(['chip', 'is-active' => request('gender') === $value])>
+                                    <input type="radio" name="gender" value="{{ $value }}" class="hidden" @checked(request('gender') === $value)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="label text-stone">Taille</p>
+                        <div class="mt-4 flex flex-wrap gap-2">
                             @foreach ($sizes as $size)
-                                <label class="cursor-pointer border px-2.5 py-1 text-[11px] {{ request('size') === $size ? 'border-ink bg-ink text-paper' : 'border-line text-ink' }}">
-                                    <input type="radio" name="size" value="{{ $size }}" class="hidden" @checked(request('size') === $size) onchange="this.form.submit()">
+                                <label @class(['chip', 'is-active' => request('size') === $size])>
+                                    <input type="radio" name="size" value="{{ $size }}" class="hidden" @checked(request('size') === $size)>
                                     {{ $size }}
                                 </label>
                             @endforeach
@@ -86,11 +172,11 @@
                     </div>
 
                     <div>
-                        <p class="mb-3 text-[10px] uppercase tracking-widest2 text-stone">Couleur</p>
-                        <div class="flex flex-wrap gap-1.5">
+                        <p class="label text-stone">Couleur</p>
+                        <div class="mt-4 flex flex-wrap gap-2">
                             @foreach ($colors as $color)
-                                <label class="cursor-pointer border px-2.5 py-1 text-[11px] {{ request('color') === $color ? 'border-ink bg-ink text-paper' : 'border-line text-ink' }}">
-                                    <input type="radio" name="color" value="{{ $color }}" class="hidden" @checked(request('color') === $color) onchange="this.form.submit()">
+                                <label @class(['chip', 'is-active' => request('color') === $color])>
+                                    <input type="radio" name="color" value="{{ $color }}" class="hidden" @checked(request('color') === $color)>
                                     {{ $color }}
                                 </label>
                             @endforeach
@@ -98,43 +184,19 @@
                     </div>
 
                     <div>
-                        <p class="mb-3 text-[10px] uppercase tracking-widest2 text-stone">Prix (MAD)</p>
-                        <div class="flex gap-2">
-                            <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min" class="w-full rounded-none border-line text-xs">
-                            <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max" class="w-full rounded-none border-line text-xs">
+                        <p class="label text-stone">Prix (MAD)</p>
+                        <div class="mt-2 flex gap-6">
+                            <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min" class="field">
+                            <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max" class="field">
                         </div>
-                        <button class="mt-3 w-full border border-ink py-1.5 text-[11px] uppercase tracking-widest2">Appliquer</button>
                     </div>
+                </div>
 
-                    @if (request()->anyFilled(['gender', 'size', 'color', 'min_price', 'max_price', 'collection']))
-                        <a href="{{ route('shop.index') }}" class="block text-[11px] uppercase tracking-widest2 text-stone underline">Réinitialiser</a>
-                    @endif
-                </form>
-            </aside>
-
-            <!-- Grid -->
-            <div>
-                @if ($products->isEmpty())
-                    <p class="py-20 text-center text-stone">Aucun article ne correspond à ces critères.</p>
-                @else
-                    <div
-                        class="grid grid-cols-2 gap-x-2 gap-y-8 transition-all duration-200 ease-out"
-                        :class="{
-                            'lg:grid-cols-2': columns === 2,
-                            'lg:grid-cols-3': columns === 3,
-                            'lg:grid-cols-4': columns === 4,
-                            'opacity-0 scale-[0.98]': transitioning,
-                            'opacity-100 scale-100': !transitioning,
-                        }"
-                    >
-                        @foreach ($products as $product)
-                            <x-product-card :product="$product" />
-                        @endforeach
-                    </div>
-
-                    <div class="mt-12">{{ $products->links() }}</div>
-                @endif
-            </div>
-        </div>
+                <div class="grid shrink-0 grid-cols-2 gap-2 border-t border-line p-6">
+                    <a href="{{ $category ? route('shop.category', $category) : route('shop.index', request()->boolean('sale') ? ['sale' => 1] : []) }}" class="btn-outline">Effacer</a>
+                    <button type="submit" class="btn-primary">Voir les résultats</button>
+                </div>
+            </form>
+        </aside>
     </div>
 </x-shop-layout>

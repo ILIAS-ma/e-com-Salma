@@ -1,6 +1,6 @@
 <x-shop-layout title="Commande confirmée">
     <div class="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6 lg:px-8">
-        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-ink text-white">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center bg-ink text-paper">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
@@ -16,7 +16,7 @@
 
         <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <a href="{{ route('orders.invoice', $order) }}" class="border border-ink px-8 py-3 text-xs uppercase tracking-widest2">Télécharger la facture</a>
-            <a href="{{ route('shop.index') }}" class="bg-ink px-8 py-3 text-xs uppercase tracking-widest2 text-paper">Continuer mes achats</a>
+            <a href="{{ route('shop.index') }}" class="btn-primary">Continuer mes achats</a>
         </div>
     </div>
 </x-shop-layout>

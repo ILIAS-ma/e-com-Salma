@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <h1 class="text-center text-sm uppercase tracking-widest2">Créer un compte</h1>
+    <h1 class="text-center section-title">Créer un compte</h1>
 
     <form method="POST" action="{{ route('register') }}" class="mt-8 space-y-5">
         @csrf

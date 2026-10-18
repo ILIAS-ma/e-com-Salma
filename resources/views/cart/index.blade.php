@@ -1,18 +1,18 @@
 <x-shop-layout title="Panier">
     <div class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-        <h1 class="text-lg uppercase tracking-widest2">Votre panier</h1>
+        <h1 class="section-title">Votre panier</h1>
 
         @if ($items->isEmpty())
             <div class="py-20 text-center">
                 <p class="text-stone">Votre panier est vide.</p>
-                <a href="{{ route('shop.index') }}" class="mt-6 inline-block border border-ink px-8 py-3 text-xs uppercase tracking-widest2">Continuer mes achats</a>
+                <a href="{{ route('shop.index') }}" class="btn-primary mt-6">Continuer mes achats</a>
             </div>
         @else
             <div class="mt-10 divide-y divide-line border-y border-line">
                 @foreach ($items as $item)
                     @php $variant = $item['variant']; @endphp
                     <div class="flex gap-4 py-6">
-                        <div class="h-28 w-24 shrink-0 overflow-hidden rounded-sm bg-sand">
+                        <div class="h-32 w-24 shrink-0 overflow-hidden rounded-none bg-sand">
                             @if ($image = $variant->product->images->first())
                                 <img src="{{ $image->url }}" alt="{{ $variant->product->name }}" class="h-full w-full object-cover">
                             @endif
@@ -43,14 +43,14 @@
             </div>
 
             <div class="mt-8 flex items-center justify-between">
-                <a href="{{ route('shop.index') }}" class="text-xs uppercase tracking-widest2 underline">Continuer mes achats</a>
+                <a href="{{ route('shop.index') }}" class="link-underline text-sm font-semibold">Continuer mes achats</a>
                 <div class="text-right">
                     <p class="text-sm text-stone">Sous-total</p>
-                    <p class="text-base uppercase tracking-widest2">{{ number_format($subtotal, 2) }} MAD</p>
+                    <p class="text-xl font-semibold">{{ number_format($subtotal, 2, ',', ' ') }} MAD</p>
                 </div>
             </div>
 
-            <a href="{{ route('checkout.show') }}" class="mt-8 block w-full bg-ink py-4 text-center text-xs uppercase tracking-widest2 text-paper hover:opacity-90">
+            <a href="{{ route('checkout.show') }}" class="btn-primary mt-8 w-full py-4">
                 Passer à la commande
             </a>
         @endif

@@ -1,7 +1,7 @@
 <x-shop-layout title="Qui sommes-nous">
     <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6">
         <p class="text-[11px] uppercase tracking-widest2 text-stone">Qui sommes-nous</p>
-        <h1 class="mt-4 text-2xl">Une garde-robe pensée depuis le Maroc</h1>
+        <h1 class="mt-4 section-title">Une garde-robe pensée depuis le Maroc</h1>
 
         <div class="mt-8 space-y-6 text-sm leading-relaxed text-stone">
             <p>

@@ -28,10 +28,10 @@
         x-init="refreshQuote()"
         class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8"
     >
-        <h1 class="text-lg uppercase tracking-widest2">Finaliser la commande</h1>
+        <h1 class="section-title">Finaliser la commande</h1>
 
         @if ($errors->any())
-            <div class="mt-6 border border-ink bg-sand p-4 text-sm text-ink">
+            <div class="mt-6 border border-brand p-4 text-[12px] text-brand">
                 <ul class="list-inside list-disc">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -114,7 +114,7 @@
                         <span>Total</span><span x-text="total.toFixed(2) + ' MAD'"></span>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-ink py-4 text-xs uppercase tracking-widest2 text-paper hover:opacity-90">
+                <button type="submit" class="btn-primary w-full py-4">
                     Confirmer la commande
                 </button>
             </aside>

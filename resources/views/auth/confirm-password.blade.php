@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <h1 class="text-center text-sm uppercase tracking-widest2">Confirmer le mot de passe</h1>
+    <h1 class="text-center section-title">Confirmer le mot de passe</h1>
 
     <p class="mt-6 text-center text-xs leading-relaxed text-stone">
         Ceci est une zone sécurisée. Merci de confirmer votre mot de passe avant de continuer.

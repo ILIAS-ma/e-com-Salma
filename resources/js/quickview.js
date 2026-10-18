@@ -1,15 +1,10 @@
+import { gsap } from 'gsap';
+
 /**
- * Storefront "quick view": clicking a product image never navigates away.
- * The clicked <img> is cloned into a fixed-position "flyer" element that
- * flies from its grid position into the quick-view panel.
- *
- * The flyer's box (top/left/width/height) is set exactly once, synchronously,
- * to the *origin* rect the instant the user clicks — so its very first paint
- * is a pixel-perfect, invisible swap over the clicked thumbnail. From then on
- * only `transform` ever changes (never the box geometry again), which is why
- * there is no flash or jump: a single compositor-only property animates for
- * the whole flight, driven by the Web Animations API. Product details are
- * fetched in the background and revealed as soon as they arrive.
+ * "Quick add" drawer, opened from the "+" button of a product card.
+ * Slides in from the right on desktop and up from the bottom on mobile.
+ * The card photo is shown immediately while the product details are fetched,
+ * and scroll is locked with scrollbar compensation so the page never jumps.
  */
 export function initQuickView() {
     const modal = document.getElementById('quick-view');
@@ -18,129 +13,103 @@ export function initQuickView() {
         return;
     }
 
-    const imageSlot = modal.querySelector('[data-qv-image-slot]');
-    const flyer = document.getElementById('quick-view-flyer');
+    const backdrop = modal.querySelector('[data-qv-backdrop]');
+    const panel = modal.querySelector('[data-qv-panel]');
     const store = () => window.Alpine.store('quickView');
-    const FLIGHT_MS = 950;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isSheet = () => window.matchMedia('(max-width: 767px)').matches;
+    const hiddenPosition = () => (isSheet() ? { xPercent: 0, yPercent: 100 } : { xPercent: 100, yPercent: 0 });
 
-    function openFromLink(link) {
+    let timeline = null;
+    let lastTrigger = null;
+
+    function lockScroll() {
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.body.style.overflow = 'hidden';
+        document.body.style.paddingRight = scrollbarWidth > 0 ? `${scrollbarWidth}px` : '';
+    }
+
+    function unlockScroll() {
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }
+
+    function open(trigger) {
         if (store().open) {
             return;
         }
 
-        const img = link.querySelector('img');
+        lastTrigger = trigger;
+        const img = trigger.closest('[data-product-card]')?.querySelector('img');
 
-        if (! img) {
-            window.location.href = link.href;
+        store().product = null;
+        store().previewImage = img ? (img.currentSrc || img.src) : null;
+        store().previewName = trigger.dataset.productName ?? '';
+        store().open = true;
+        lockScroll();
+
+        requestAnimationFrame(() => {
+            timeline?.kill();
+
+            if (reducedMotion) {
+                gsap.set(backdrop, { autoAlpha: 1 });
+                gsap.set(panel, { xPercent: 0, yPercent: 0 });
+                return;
+            }
+
+            timeline = gsap.timeline();
+            timeline.fromTo(backdrop, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, ease: 'power1.out' }, 0);
+            timeline.fromTo(panel, hiddenPosition(), { xPercent: 0, yPercent: 0, duration: 0.6, ease: 'expo.out' }, 0);
+        });
+
+        fetch(trigger.dataset.quickViewUrl, { headers: { Accept: 'application/json' } })
+            .then((response) => response.json())
+            .then((data) => {
+                if (store().open) {
+                    store().product = data;
+                }
+            })
+            .catch(() => {
+                close(true);
+                window.location.href = trigger.dataset.productUrl;
+            });
+    }
+
+    function close(immediate = false) {
+        if (! store().open) {
             return;
         }
 
-        const originRect = img.getBoundingClientRect();
+        timeline?.kill();
 
-        flyer.getAnimations().forEach((a) => a.cancel());
-        flyer.src = img.currentSrc || img.src;
-        Object.assign(flyer.style, {
-            display: 'block',
-            position: 'fixed',
-            top: `${originRect.top}px`,
-            left: `${originRect.left}px`,
-            width: `${originRect.width}px`,
-            height: `${originRect.height}px`,
-            margin: '0',
-            zIndex: '200',
-            transform: 'none',
-            transformOrigin: 'top left',
-            boxShadow: '0 0 0 rgba(17,17,17,0)',
-        });
-
-        store().product = null;
-        store().loading = true;
-        store().imageLanded = false;
-        store().open = true;
-        document.body.style.overflow = 'hidden';
-
-        let landed = false;
-        const land = () => {
-            if (landed) {
-                return;
-            }
-            landed = true;
-            store().imageLanded = true;
-            flyer.style.display = 'none';
+        const finish = () => {
+            store().open = false;
+            store().product = null;
+            gsap.set([backdrop, panel], { clearProps: 'all' });
+            unlockScroll();
+            lastTrigger?.focus({ preventScroll: true });
         };
 
-        // Two frames: the first lets Alpine actually paint the (now open)
-        // panel with a stable layout so the target rect we read is the real
-        // resting position — not a still-fading-in one. The panel itself
-        // only fades (no scale/translate) for exactly this reason.
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                const targetRect = imageSlot.getBoundingClientRect();
+        if (immediate || reducedMotion) {
+            finish();
+            return;
+        }
 
-                const dx = targetRect.left - originRect.left;
-                const dy = targetRect.top - originRect.top;
-                const scaleX = targetRect.width / originRect.width;
-                const scaleY = targetRect.height / originRect.height;
-
-                // A hair short of the final spot, then settle in — a soft
-                // "landing" instead of a hard stop.
-                const nearlyThere = `translate(${dx * 0.98}px, ${dy * 0.98}px) scale(${scaleX - (scaleX - 1) * 0.02}, ${scaleY - (scaleY - 1) * 0.02})`;
-                const end = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
-
-                const animation = flyer.animate(
-                    [
-                        { transform: 'translate(0px, 0px) scale(1, 1)', boxShadow: '0 0 0 rgba(17,17,17,0)' },
-                        { transform: nearlyThere, boxShadow: '0 30px 70px rgba(17,17,17,0.25)', offset: 0.9 },
-                        { transform: end, boxShadow: '0 20px 45px rgba(17,17,17,0.16)' },
-                    ],
-                    {
-                        duration: FLIGHT_MS,
-                        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                        fill: 'forwards',
-                    }
-                );
-
-                animation.finished.then(land).catch(() => {});
-            });
-        });
-
-        // Safety net: guarantees the panel reveals even if the animation
-        // promise never resolves (e.g. reduced-motion, tab backgrounded).
-        setTimeout(land, FLIGHT_MS + 300);
-
-        fetch(link.dataset.quickViewUrl, { headers: { Accept: 'application/json' } })
-            .then((response) => response.json())
-            .then((data) => {
-                store().product = data;
-                store().loading = false;
-            })
-            .catch(() => {
-                close();
-                window.location.href = link.href;
-            });
+        timeline = gsap.timeline({ onComplete: finish });
+        timeline.to(backdrop, { autoAlpha: 0, duration: 0.3, ease: 'power1.in' }, 0);
+        timeline.to(panel, { ...hiddenPosition(), duration: 0.35, ease: 'power2.in' }, 0);
     }
 
-    function close() {
-        store().open = false;
-        store().imageLanded = false;
-        document.body.style.overflow = '';
-        flyer.getAnimations().forEach((a) => a.cancel());
-        flyer.style.display = 'none';
-    }
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-quick-view]');
 
-    document.querySelectorAll('[data-quick-view]').forEach((link) => {
-        link.addEventListener('click', (event) => {
-            if (event.metaKey || event.ctrlKey || event.shiftKey || event.button === 1) {
-                return;
-            }
-
+        if (trigger) {
             event.preventDefault();
-            openFromLink(link);
-        });
-    });
+            open(trigger);
+            return;
+        }
 
-    modal.addEventListener('click', (event) => {
-        if (event.target.closest('[data-qv-close]') || event.target.hasAttribute('data-qv-backdrop')) {
+        if (store().open && (event.target.closest('[data-qv-close]') || event.target.hasAttribute('data-qv-backdrop'))) {
             close();
         }
     });

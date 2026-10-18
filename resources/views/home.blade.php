@@ -1,110 +1,75 @@
 <x-shop-layout>
-    <!-- Hero: full-bleed, no color block, minimal caption -->
-    <section class="relative">
-        <div class="relative aspect-[4/5] w-full overflow-hidden bg-sand sm:aspect-[16/9] lg:aspect-[21/9]">
-            <img src="https://picsum.photos/seed/atlas-hero/1800/900" alt="Collection" class="h-full w-full object-cover">
-        </div>
-        <div class="mx-auto max-w-[1600px] px-4 py-10 text-center sm:px-6">
-            <p class="text-xs uppercase tracking-widest2 text-stone">Nouvelle collection</p>
-            <h1 class="mt-3 text-3xl font-light sm:text-4xl">La femme, dans une matière juste</h1>
-            <a href="{{ route('shop.index') }}" class="mt-4 inline-block border-b border-ink pb-0.5 text-xs uppercase tracking-widest2 hover:opacity-60">
-                Découvrir
-            </a>
-        </div>
-    </section>
+    @php
+        $campaign = fn ($category, $size) => "https://picsum.photos/seed/salma-campaign-{$category->id}/{$size}";
+        $hero = $categories->first();
+        $pair = $categories->slice(1, 2);
+        $closing = $categories->slice(3, 2);
+    @endphp
 
-    <!-- Categories: flat tiles, caption below the image (no overlay) -->
-    <section class="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
-        <div class="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2 no-scrollbar sm:gap-3">
-            @foreach ($categories as $category)
-                <a
-                    href="{{ route('shop.category', $category) }}"
-                    class="block w-[48vw] shrink-0 snap-start sm:w-[24vw] lg:w-[16vw]"
-                    x-data="{ shown: false }" x-intersect.once="shown = true" data-reveal :class="{ 'is-visible': shown }"
-                >
-                    <div class="aspect-[3/4] overflow-hidden bg-sand">
-                        <img src="https://picsum.photos/seed/cat-{{ $category->id }}/500/650" alt="{{ $category->name }}" class="h-full w-full object-cover">
-                    </div>
-                    <p class="mt-2 text-center text-xs uppercase tracking-widest2 text-ink">{{ $category->name }}</p>
+    <!-- Full-screen campaign -->
+    @if ($hero)
+        <a href="{{ route('shop.category', $hero) }}" class="group relative block h-[calc(100svh-4rem)] overflow-hidden bg-sand lg:h-[calc(100svh-5rem)]">
+            <img src="{{ $campaign($hero, '1920/1200') }}" alt="{{ $hero->name }}" class="h-full w-full object-cover">
+            <div class="absolute inset-x-0 bottom-10 text-center text-paper [text-shadow:0_0_18px_rgba(0,0,0,0.25)]">
+                <p class="text-[13px] uppercase tracking-widest3">{{ $hero->name }}</p>
+                <p class="label mt-3 inline-block underline underline-offset-4">Nouvelle collection</p>
+            </div>
+        </a>
+    @endif
+
+    <!-- Split campaign -->
+    @if ($pair->isNotEmpty())
+        <div class="grid grid-cols-1 gap-px md:grid-cols-2">
+            @foreach ($pair as $category)
+                <a href="{{ route('shop.category', $category) }}" class="relative block h-[80svh] overflow-hidden bg-sand md:h-[90svh]">
+                    <img src="{{ $campaign($category, '1000/1400') }}" alt="{{ $category->name }}" loading="lazy" class="h-full w-full object-cover">
+                    <p class="absolute inset-x-0 bottom-8 text-center text-[13px] uppercase tracking-widest3 text-paper [text-shadow:0_0_18px_rgba(0,0,0,0.25)]">{{ $category->name }}</p>
                 </a>
             @endforeach
         </div>
-    </section>
+    @endif
 
-    <x-editorial-statement />
-
-    <!-- Featured -->
-    @if ($featured->isNotEmpty())
-        <section class="mx-auto max-w-[1600px] px-4 py-14 sm:px-6">
+    <!-- New arrivals -->
+    @if ($newArrivals->isNotEmpty())
+        <section class="px-4 pt-20 sm:px-6 lg:px-10">
             <div class="flex items-baseline justify-between">
-                <h2 class="text-base uppercase tracking-widest2">Sélection</h2>
-                <a href="{{ route('shop.index') }}" class="text-xs uppercase tracking-widest2 text-stone hover:text-ink">Tout voir</a>
+                <h2 class="section-title">Nouveautés</h2>
+                <a href="{{ route('shop.index') }}" class="label link-underline">Voir tout</a>
             </div>
-            <div class="mt-6 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2 no-scrollbar sm:gap-3">
-                @foreach ($featured as $product)
-                    <div class="w-[48vw] shrink-0 snap-start sm:w-[32vw] lg:w-[19vw]">
-                        <x-product-card :product="$product" :large-text="true" />
-                    </div>
+            <div class="mt-6 grid grid-cols-2 gap-x-2 gap-y-10 lg:grid-cols-4">
+                @foreach ($newArrivals as $product)
+                    <x-product-card :product="$product" />
                 @endforeach
             </div>
         </section>
     @endif
 
-    <!-- New arrivals -->
-    <section class="mx-auto max-w-[1600px] px-4 py-14 sm:px-6">
-        <div class="flex items-baseline justify-between">
-            <h2 class="text-base uppercase tracking-widest2">Nouveautés</h2>
-            <a href="{{ route('shop.index') }}" class="text-xs uppercase tracking-widest2 text-stone hover:text-ink">Tout voir</a>
-        </div>
-        <div class="mt-6 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2 no-scrollbar sm:gap-3">
-            @foreach ($newArrivals as $product)
-                <div class="w-[48vw] shrink-0 snap-start sm:w-[32vw] lg:w-[19vw]">
-                    <x-product-card :product="$product" :large-text="true" />
-                </div>
+    <!-- Closing campaign -->
+    @if ($closing->isNotEmpty())
+        <div class="mt-20 grid grid-cols-1 gap-px md:grid-cols-2">
+            @foreach ($closing as $category)
+                <a href="{{ route('shop.category', $category) }}" class="relative block h-[80svh] overflow-hidden bg-sand md:h-[90svh]">
+                    <img src="{{ $campaign($category, '1000/1400') }}" alt="{{ $category->name }}" loading="lazy" class="h-full w-full object-cover">
+                    <p class="absolute inset-x-0 bottom-8 text-center text-[13px] uppercase tracking-widest3 text-paper [text-shadow:0_0_18px_rgba(0,0,0,0.25)]">{{ $category->name }}</p>
+                </a>
             @endforeach
         </div>
-    </section>
+    @endif
 
-    <!-- Info strip -->
-    <section class="border-t border-line py-10">
-        <div class="mx-auto flex max-w-[1600px] snap-x snap-mandatory gap-4 overflow-x-auto px-4 text-center no-scrollbar sm:px-6">
-            <p class="w-[80vw] shrink-0 snap-start text-sm text-stone sm:w-[33%]">Livraison partout au Maroc</p>
-            <p class="w-[80vw] shrink-0 snap-start text-sm text-stone sm:w-[33%]">Paiement à la livraison disponible</p>
-            <p class="w-[80vw] shrink-0 snap-start text-sm text-stone sm:w-[33%]">Retours sous 14 jours</p>
-        </div>
-    </section>
-
-    <!-- FAQ preview -->
-    <section class="border-t border-line py-16">
-        <div class="mx-auto max-w-2xl px-4 sm:px-6">
-            <p class="text-center text-xs uppercase tracking-widest2 text-stone">Questions fréquentes</p>
-            <div class="mt-8 divide-y divide-line border-y border-line">
-                @foreach ($topFaqs as $question => $answer)
-                    <details class="group faq-item scroll-mt-28 py-4">
-                        <summary class="flex cursor-pointer list-none items-center justify-between text-base">
-                            {{ $question }}
-                            <span class="text-stone group-open:hidden">+</span>
-                            <span class="hidden text-stone group-open:inline">−</span>
-                        </summary>
-                        <p class="faq-answer mt-3 text-sm leading-relaxed text-stone">{{ $answer }}</p>
-                    </details>
+    <!-- Featured: horizontal strip -->
+    @if ($featured->isNotEmpty())
+        <section class="pt-20">
+            <div class="flex items-baseline justify-between px-4 sm:px-6 lg:px-10">
+                <h2 class="section-title">Sélection</h2>
+                <a href="{{ route('shop.index') }}" class="label link-underline">Voir tout</a>
+            </div>
+            <div class="no-scrollbar mt-6 flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-px-4 px-4 sm:scroll-px-6 sm:px-6 lg:scroll-px-10 lg:px-10">
+                @foreach ($featured as $product)
+                    <div class="w-[44vw] shrink-0 snap-start sm:w-[30vw] lg:w-[18vw]">
+                        <x-product-card :product="$product" />
+                    </div>
                 @endforeach
             </div>
-            <div class="mt-8 text-center">
-                <a href="{{ route('pages.faq') }}" class="border-b border-ink pb-0.5 text-xs uppercase tracking-widest2 hover:opacity-60">
-                    Voir toutes les questions
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <x-newsletter-signup />
-
-    <!-- Social -->
-    <section class="border-t border-line py-10">
-        <div class="mx-auto flex max-w-[1600px] flex-col items-center gap-4 px-4 text-center sm:px-6">
-            <p class="text-xs uppercase tracking-widest2 text-stone">Suivez-nous</p>
-            <x-social-links class="flex items-center gap-6 text-ink" />
-        </div>
-    </section>
+        </section>
+    @endif
 </x-shop-layout>

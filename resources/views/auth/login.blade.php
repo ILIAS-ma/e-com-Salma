@@ -4,7 +4,7 @@
         <div class="lg:col-span-7">
             <div class="mb-6">
                 <span class="text-[10px] font-medium uppercase tracking-widest3 text-stone">Espace personnel</span>
-                <h1 class="mt-1 text-2xl font-light tracking-wide text-ink sm:text-3xl">Connexion</h1>
+                <h1 class="mt-2 section-title">Connexion</h1>
                 <p class="mt-2 text-xs leading-relaxed text-stone">
                     Identifiez-vous pour accéder à vos commandes, vos adresses et vos pièces coup de cœur.
                 </p>
@@ -30,7 +30,7 @@
                             autofocus
                             autocomplete="username"
                             placeholder="nom@exemple.com"
-                            class="w-full rounded-none border border-line bg-paper px-3.5 py-3 text-sm text-ink placeholder-stone/40 transition-colors focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
+                            class="w-full rounded-none border border-line bg-paper px-3.5 py-3 text-sm text-ink placeholder-stone/40 transition-colors focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                         />
                     </div>
                     <x-input-error :messages="$errors->get('email')" class="mt-1.5" />
@@ -56,7 +56,7 @@
                             required
                             autocomplete="current-password"
                             placeholder="••••••••"
-                            class="w-full rounded-none border border-line bg-paper px-3.5 py-3 pr-10 text-sm text-ink placeholder-stone/40 transition-colors focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
+                            class="w-full rounded-none border border-line bg-paper px-3.5 py-3 pr-10 text-sm text-ink placeholder-stone/40 transition-colors focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
                         />
                         <button
                             type="button"
@@ -95,7 +95,7 @@
                 <!-- Submit Button -->
                 <button
                     type="submit"
-                    class="group flex w-full items-center justify-center gap-2 bg-ink py-3.5 text-xs uppercase tracking-widest2 text-paper transition-all hover:bg-ink/90 active:scale-[0.99]"
+                    class="group btn-primary w-full py-4"
                 >
                     <span>Se connecter</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -130,10 +130,10 @@
         </div>
 
         <!-- Nouveau Client (Right Column Card) -->
-        <div class="flex flex-col justify-between border border-line bg-sand/50 p-6 sm:p-8 lg:col-span-5">
+        <div class="flex flex-col justify-between bg-sand p-6 sm:p-8 lg:col-span-5">
             <div>
                 <span class="text-[10px] font-medium uppercase tracking-widest3 text-stone">Nouveau client</span>
-                <h2 class="mt-1 text-xl font-light tracking-wide text-ink sm:text-2xl">Créer un compte</h2>
+                <h2 class="mt-2 section-title">Créer un compte</h2>
                 <p class="mt-2 text-xs leading-relaxed text-stone">
                     Rejoignez la maison {{ config('app.name') }} pour bénéficier d'une expérience d'achat privilégiée.
                 </p>
@@ -169,7 +169,7 @@
             <div class="mt-8 border-t border-line/60 pt-6">
                 <a
                     href="{{ route('register') }}"
-                    class="block w-full border border-ink py-3 text-center text-xs uppercase tracking-widest2 text-ink transition-colors hover:bg-ink hover:text-paper"
+                    class="btn-outline w-full"
                 >
                     Créer mon compte
                 </a>

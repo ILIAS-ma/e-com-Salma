@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <h1 class="text-center text-sm uppercase tracking-widest2">Réinitialiser le mot de passe</h1>
+    <h1 class="text-center section-title">Réinitialiser le mot de passe</h1>
 
     <form method="POST" action="{{ route('password.store') }}" class="mt-8 space-y-5">
         @csrf

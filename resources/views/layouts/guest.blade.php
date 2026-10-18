@@ -20,11 +20,13 @@ $widthClasses = match ($maxWidth) {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name') }}</title>
+        <title>{{ config('app.name') }} — Silk & More</title>
+        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+        <script>document.documentElement.classList.add('js');</script>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="flex min-h-screen flex-col bg-paper font-light text-ink antialiased">
+    <body class="flex min-h-screen flex-col bg-paper text-ink antialiased">
         <header class="relative border-b border-line px-4 py-6 text-center sm:px-6">
             <a href="{{ route('shop.index') }}" class="absolute left-4 top-1/2 -translate-y-1/2 hidden text-[11px] uppercase tracking-widest2 text-stone hover:text-ink transition-colors sm:inline-flex items-center gap-1.5">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -32,8 +34,8 @@ $widthClasses = match ($maxWidth) {
                 </svg>
                 Boutique
             </a>
-            <a href="{{ route('home') }}" class="text-logo inline-block transition-opacity hover:opacity-80">
-                {{ strtoupper(config('app.name')) }}
+            <a href="{{ route('home') }}" class="inline-block transition-transform duration-500 ease-silk hover:scale-[1.03]">
+                <x-application-logo class="h-14 w-auto" />
             </a>
         </header>
 

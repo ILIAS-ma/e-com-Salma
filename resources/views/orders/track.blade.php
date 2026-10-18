@@ -6,7 +6,7 @@
         <form method="GET" class="mt-8 space-y-4">
             <input name="reference" value="{{ request('reference') }}" placeholder="Référence (ex: ATL-260919-AB12C)" required class="w-full rounded-none border-line text-sm">
             <input type="email" name="email" value="{{ request('email') }}" placeholder="Email utilisé lors de la commande" required class="w-full rounded-none border-line text-sm">
-            <button type="submit" class="w-full bg-ink py-3 text-xs uppercase tracking-widest2 text-paper">Suivre ma commande</button>
+            <button type="submit" class="btn-primary w-full">Suivre ma commande</button>
         </form>
 
         @if ($order)
